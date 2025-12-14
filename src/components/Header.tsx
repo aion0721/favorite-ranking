@@ -61,11 +61,25 @@ export default function Header() {
   }, [session?.user?.id, supabase]);
 
   const handleLogout = useCallback(async () => {
+    // セッションが無い場合は signOut を呼ばずにリダイレクト
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      window.location.href = "/login?logged_out=1";
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
-      alert("ログアウトに失敗しました");
-      console.error(error);
+      const msg = error.message?.toLowerCase() ?? "";
+      if (!msg.includes("auth session missing")) {
+        alert("ログアウトに失敗しました");
+        console.error(error);
+        return;
+      }
+      // グローバルサインアウトで 403 の場合はローカルクリアを試す
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
     }
+    window.location.href = "/login?logged_out=1";
   }, [supabase]);
 
   const handleDisplayNameSubmit = useCallback(
@@ -102,13 +116,6 @@ export default function Header() {
     },
     [displayNameInput, session?.user?.id, supabase]
   );
-
-  const handleStartEdit = useCallback(() => {
-    if (profile?.display_name) {
-      setDisplayNameInput(profile.display_name);
-    }
-    setEditing(true);
-  }, [profile?.display_name]);
 
   const displayLabel = profile?.display_name || session?.user?.email;
   const showDisplayNameForm =
@@ -147,29 +154,15 @@ export default function Header() {
                 <span className="text-gray-700">プロフィール取得中...</span>
               ) : (
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleStartEdit}
+                  <Link
+                    href="/account"
                     className="rounded px-2 py-1 text-gray-700 transition hover:bg-gray-100"
-                    title="表示名を変更する"
+                    title="アカウント設定へ移動"
                   >
                     👤 {displayLabel}
-                  </button>
-                  <Link
-                    href="/account/password"
-                    className="rounded border border-gray-300 px-2 py-1 text-gray-700 transition hover:bg-gray-100"
-                    title="パスワードを設定/変更する"
-                  >
-                    🔒
                   </Link>
                 </div>
               )}
-              <button
-                onClick={handleLogout}
-                className="rounded border border-gray-300 px-3 py-1 text-gray-700 transition hover:bg-gray-100"
-              >
-                🚪
-              </button>
             </>
           ) : (
             <Link

@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [passwordEmail, setPasswordEmail] = useState("");
@@ -14,6 +16,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingPwd, setLoadingPwd] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+
+  useEffect(() => {
+    const loggedOut = searchParams.get("logged_out");
+    if (loggedOut) {
+      setMessage("ログアウトしました。再度ログインしてください。");
+    }
+  }, [searchParams]);
 
   const handleMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,7 +71,11 @@ export default function LoginPage() {
       setError("メールアドレスまたはパスワードが違う可能性があります。");
       return;
     }
-    setMessage("ログインしました。");
+    setMessage("ログインしました。3秒後にトップページへ移動します。");
+    setRedirecting(true);
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3000);
   };
 
   return (
@@ -155,10 +169,10 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            disabled={loadingPwd}
+            disabled={loadingPwd || redirecting}
             className="w-full rounded bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-500"
           >
-            {loadingPwd ? "ログイン中..." : "ログイン"}
+            {redirecting ? "リダイレクト中..." : loadingPwd ? "ログイン中..." : "ログイン"}
           </button>
         </form>
       </section>
