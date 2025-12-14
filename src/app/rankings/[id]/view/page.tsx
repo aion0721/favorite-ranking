@@ -20,6 +20,7 @@ type RankingItem = {
   title: string;
   comment: string | null;
   image_url?: string | null;
+  url?: string | null;
 };
 
 export default function RankingViewPage() {
@@ -56,9 +57,9 @@ export default function RankingViewPage() {
           .maybeSingle(),
         supabase
           .from("ranking_items")
-          .select("id, rank, title, comment, image_url")
+          .select("id, rank, title, comment, image_url, url")
           .eq("ranking_id", id)
-          .order("rank", { ascending: false }), // 下から順に表示
+          .order("rank", { ascending: false }),
       ]);
 
       if (rankingError) {
@@ -221,13 +222,19 @@ export default function RankingViewPage() {
               {ranking.title}
             </h1>
             <p className="text-sm text-gray-600">
-              作者: {ranking.authorName || "未設定"}
+              作成者: {ranking.authorName || "未設定"}
             </p>
             {ranking.description && (
               <p className="mt-1 text-gray-700">{ranking.description}</p>
             )}
           </div>
           <div className="flex gap-2">
+            <Link
+              href={`/rankings/${ranking.id}/edit`}
+              className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+            >
+              内容を編集
+            </Link>
             <button
               onClick={handleCopyLink}
               className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
@@ -266,7 +273,7 @@ export default function RankingViewPage() {
                 </p>
               )}
               <p className="text-sm text-gray-500">
-                ボタンを押してランキングを下位から順に見ていきましょう。
+                ボタンを押してランキングを下位から見ていきましょう。
               </p>
             </div>
           </section>
@@ -301,6 +308,16 @@ export default function RankingViewPage() {
               <h2 className="text-3xl font-bold text-gray-900">
                 {currentItem.title}
               </h2>
+              {currentItem.url && (
+                <a
+                  href={currentItem.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-blue-600 underline"
+                >
+                  リンクを開く
+                </a>
+              )}
               {currentItem.image_url && (
                 <img
                   src={currentItem.image_url}
@@ -309,7 +326,7 @@ export default function RankingViewPage() {
                 />
               )}
               <p className="max-w-2xl text-lg text-gray-700">
-                {currentItem.comment || "内容がありません。"}
+                {currentItem.comment || "コメントがありません。"}
               </p>
             </div>
           </section>

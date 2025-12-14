@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
@@ -19,9 +19,33 @@ export default function NewRankingItemPage() {
   const [rank, setRank] = useState<number | "">("");
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
+  const [url, setUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!rankingId) return;
+
+    const fetchNextRank = async () => {
+      const { data, error } = await supabase
+        .from("ranking_items")
+        .select("rank")
+        .eq("ranking_id", rankingId)
+        .order("rank", { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error("Failed to fetch last rank", error);
+        return;
+      }
+
+      const lastRank = data?.[0]?.rank ?? 0;
+      setRank((prev) => (prev === "" ? lastRank + 1 : prev));
+    };
+
+    fetchNextRank();
+  }, [rankingId, supabase]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -89,6 +113,7 @@ export default function NewRankingItemPage() {
       rank: Number(rank),
       title,
       comment: comment || null,
+      url: url || null,
       image_url: uploadedImageUrl,
     });
 
@@ -99,7 +124,7 @@ export default function NewRankingItemPage() {
       return;
     }
 
-    router.push(`/rankings/${rankingId}`);
+    router.push(`/rankings/${rankingId}/edit`);
   };
 
   if (sessionLoading) {
@@ -163,6 +188,19 @@ export default function NewRankingItemPage() {
 
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-gray-800">
+            URL（任意）
+          </label>
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="https://example.com"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-800">
             コメント（任意）
           </label>
           <textarea
@@ -196,7 +234,7 @@ export default function NewRankingItemPage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/rankings/${rankingId}`)}
+            onClick={() => router.push(`/rankings/${rankingId}/edit`)}
             className="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
           >
             キャンセル

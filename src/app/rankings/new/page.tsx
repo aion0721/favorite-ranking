@@ -37,7 +37,7 @@ export default function NewRankingPage() {
     }
 
     if (data?.id) {
-      router.push(`/rankings/${data.id}`);
+      router.push(`/rankings/${data.id}/edit`);
     } else {
       router.push("/rankings");
     }

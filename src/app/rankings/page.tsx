@@ -64,7 +64,9 @@ export default function RankingsPage() {
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Ranking 一覧</h1>
-          <p className="text-gray-600">公開ランキングと自分のランキングを表示</p>
+          <p className="text-gray-600">
+            公開ランキングと自分のランキングを表示します。
+          </p>
         </div>
         {session && (
           <Link
@@ -79,7 +81,7 @@ export default function RankingsPage() {
       {loading ? (
         <p className="text-gray-600">読み込み中...</p>
       ) : rankings.length === 0 ? (
-        <p className="text-gray-600">ランキングが見つかりませんでした。</p>
+        <p className="text-gray-600">ランキングがありません。</p>
       ) : (
         <div className="flex flex-col gap-4">
           {rankings.map((ranking) => (
@@ -91,7 +93,7 @@ export default function RankingsPage() {
                 <div className="flex flex-col gap-1">
                   <h2 className="text-lg font-semibold">{ranking.title}</h2>
                   <p className="text-xs text-gray-500">
-                    作者: {ranking.authorName || "未設定"}
+                    作成者: {ranking.authorName || "未設定"}
                   </p>
                   {ranking.description && (
                     <p className="text-sm text-gray-600">
@@ -99,14 +101,14 @@ export default function RankingsPage() {
                     </p>
                   )}
                   {!ranking.is_public && (
-                    <p className="text-xs text-amber-600">非公開（自分のみ）</p>
+                    <p className="text-xs text-amber-600">非公開</p>
                   )}
                 </div>
                 {session && (
                   <div className="flex flex-wrap justify-end gap-2 text-sm">
                     {session?.user?.id === ranking.user_id && (
                       <Link
-                        href={`/rankings/${ranking.id}`}
+                        href={`/rankings/${ranking.id}/edit`}
                         className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
                       >
                         編集
