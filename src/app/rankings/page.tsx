@@ -70,21 +70,38 @@ export default function RankingsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {rankings.map((ranking) => (
-            <Link
+            <article
               key={ranking.id}
-              href={`/rankings/${ranking.id}`}
-              className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="flex flex-col justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <h2 className="text-lg font-semibold">{ranking.title}</h2>
-              {ranking.description && (
-                <p className="mt-1 text-sm text-gray-600">
-                  {ranking.description}
-                </p>
-              )}
-              {!ranking.is_public && (
-                <p className="mt-2 text-xs text-amber-600">非公開（自分のみ）</p>
-              )}
-            </Link>
+              <div>
+                <h2 className="text-lg font-semibold">{ranking.title}</h2>
+                {ranking.description && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    {ranking.description}
+                  </p>
+                )}
+                {!ranking.is_public && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    非公開（自分のみ）
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <Link
+                  href={`/rankings/${ranking.id}`}
+                  className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+                >
+                  編集
+                </Link>
+                <Link
+                  href={`/rankings/${ranking.id}/view`}
+                  className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
+                >
+                  表示
+                </Link>
+              </div>
+            </article>
           ))}
         </div>
       )}
