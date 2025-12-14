@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
 
@@ -60,62 +60,32 @@ export default function Header() {
     };
   }, [session?.user?.id, supabase]);
 
-  const handleLogout = useCallback(async () => {
-    // セッションが無い場合は signOut を呼ばずにリダイレクト
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      window.location.href = "/login?logged_out=1";
-      return;
-    }
+  const handleDisplayNameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.user?.id) return;
 
-    const { error } = await supabase.auth.signOut();
+    const trimmed = displayNameInput.trim();
+    if (!trimmed) return;
+
+    setSavingDisplayName(true);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert({ user_id: session.user.id, display_name: trimmed }, { onConflict: "user_id" })
+      .select("user_id, display_name")
+      .maybeSingle();
+
     if (error) {
-      const msg = error.message?.toLowerCase() ?? "";
-      if (!msg.includes("auth session missing")) {
-        alert("ログアウトに失敗しました");
-        console.error(error);
-        return;
-      }
-      // グローバルサインアウトで 403 の場合はローカルクリアを試す
-      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      console.error("Failed to save display name", error);
+      alert("表示名の保存に失敗しました。時間をおいて再度お試しください。");
+    } else if (data) {
+      setProfile(data);
+      setDisplayNameInput(data.display_name ?? "");
+      setEditing(false);
     }
-    window.location.href = "/login?logged_out=1";
-  }, [supabase]);
 
-  const handleDisplayNameSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (!session?.user?.id) return;
-
-      const trimmed = displayNameInput.trim();
-      if (!trimmed) {
-        return;
-      }
-
-      setSavingDisplayName(true);
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .upsert(
-          { user_id: session.user.id, display_name: trimmed },
-          { onConflict: "user_id" }
-        )
-        .select("user_id, display_name")
-        .maybeSingle();
-
-      if (error) {
-        console.error("Failed to save display name", error);
-        alert("表示名の保存に失敗しました。時間をおいて再度お試しください。");
-      } else if (data) {
-        setProfile(data);
-        setDisplayNameInput(data.display_name ?? "");
-        setEditing(false);
-      }
-
-      setSavingDisplayName(false);
-    },
-    [displayNameInput, session?.user?.id, supabase]
-  );
+    setSavingDisplayName(false);
+  };
 
   const displayLabel = profile?.display_name || session?.user?.email;
   const showDisplayNameForm =
@@ -153,15 +123,13 @@ export default function Header() {
               {profileLoading ? (
                 <span className="text-gray-700">プロフィール取得中...</span>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/account"
-                    className="rounded px-2 py-1 text-gray-700 transition hover:bg-gray-100"
-                    title="アカウント設定へ移動"
-                  >
-                    👤 {displayLabel}
-                  </Link>
-                </div>
+                <Link
+                  href="/account"
+                  className="rounded px-2 py-1 text-gray-700 transition hover:bg-gray-100"
+                  title="アカウント設定へ移動"
+                >
+                  👤 {displayLabel}
+                </Link>
               )}
             </>
           ) : (
@@ -185,10 +153,10 @@ export default function Header() {
               <p className="text-sm font-semibold text-blue-900">
                 {profile
                   ? "表示名を変更できます。"
-                  : "はじめまして！表示名を登録してください。"}
+                  : "はじめまして。表示名を登録してください。"}
               </p>
               <p className="text-xs text-blue-800">
-                ランキング作成者として表示する名前です。あとから変更もできます。
+                ランキング作成時に表示する名前です。あとから変更もできます。
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -206,7 +174,7 @@ export default function Header() {
                 disabled={savingDisplayName || !displayNameInput.trim()}
                 className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
               >
-                {savingDisplayName ? "保存中..." : "保存"}
+                {savingDisplayName ? "保存中..." : "保存する"}
               </button>
               {profile && (
                 <button
