@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useMemo } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
@@ -19,7 +20,7 @@ export default function Header() {
     } else {
       alert("メールに送信されたリンクからログインしてください");
     }
-  }, []);
+  }, [supabase]);
 
   const handleLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
@@ -27,11 +28,30 @@ export default function Header() {
       alert("ログアウトに失敗しました");
       console.error(error);
     }
-  }, []);
+  }, [supabase]);
 
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3">
-      <div className="text-lg font-bold">Favorite Ranking</div>
+      <div className="flex items-center gap-3">
+        <div className="relative h-9 w-9 overflow-hidden rounded">
+          <Image
+            src="/logo.png"
+            alt="Favorite Ranking ロゴ"
+            fill
+            sizes="36px"
+            className="object-contain"
+            priority
+          />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-gray-700 leading-tight">
+            Favorite Ranking
+          </p>
+          <p className="text-xs text-gray-500 leading-tight">
+            お気に入りを共有しよう
+          </p>
+        </div>
+      </div>
 
       <div className="flex items-center gap-3 text-sm">
         {loading ? (
