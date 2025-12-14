@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
-export default function LoginPage() {
+function LoginContent() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -186,5 +186,19 @@ export default function LoginPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-3xl px-5 py-8">
+          <p className="text-gray-600">読み込み中...</p>
+        </main>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
