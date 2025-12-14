@@ -102,22 +102,24 @@ export default function RankingsPage() {
                     <p className="text-xs text-amber-600">非公開（自分のみ）</p>
                   )}
                 </div>
-                <div className="flex flex-wrap justify-end gap-2 text-sm">
-                  {session?.user?.id === ranking.user_id && (
+                {session && (
+                  <div className="flex flex-wrap justify-end gap-2 text-sm">
+                    {session?.user?.id === ranking.user_id && (
+                      <Link
+                        href={`/rankings/${ranking.id}`}
+                        className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+                      >
+                        編集
+                      </Link>
+                    )}
                     <Link
-                      href={`/rankings/${ranking.id}`}
-                      className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+                      href={`/rankings/${ranking.id}/view`}
+                      className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
                     >
-                      編集
+                      表示
                     </Link>
-                  )}
-                  <Link
-                    href={`/rankings/${ranking.id}/view`}
-                    className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
-                  >
-                    表示
-                  </Link>
-                </div>
+                  </div>
+                )}
               </div>
             </article>
           ))}
