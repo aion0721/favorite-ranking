@@ -168,7 +168,7 @@ export default function Header() {
                 onClick={handleLogout}
                 className="rounded border border-gray-300 px-3 py-1 text-gray-700 transition hover:bg-gray-100"
               >
-                ログアウト
+                🚪
               </button>
             </>
           ) : (

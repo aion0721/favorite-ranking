@@ -66,9 +66,7 @@ export default function RankingsPage() {
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Ranking 一覧</h1>
-          <p className="text-gray-600">
-            公開ランキングと自分のランキングを表示します。
-          </p>
+          <p className="text-gray-600">公開ランキング / 自分のランキング</p>
         </div>
         {session && (
           <Link
