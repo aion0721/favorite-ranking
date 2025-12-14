@@ -9,6 +9,8 @@ type RankingDetail = {
   id: string;
   title: string;
   description: string | null;
+  user_id: string;
+  authorName?: string | null;
 };
 
 type RankingItem = {
@@ -38,7 +40,7 @@ export default function RankingViewPage() {
         await Promise.all([
           supabase
             .from("rankings")
-            .select("id, title, description")
+            .select("id, title, description, user_id, profiles(display_name)")
             .eq("id", id)
             .maybeSingle(),
           supabase
@@ -51,7 +53,14 @@ export default function RankingViewPage() {
       if (rankingError) {
         console.error("Failed to fetch ranking", rankingError);
       } else {
-        setRanking(rankingData);
+        setRanking(
+          rankingData
+            ? {
+                ...rankingData,
+                authorName: rankingData.profiles?.display_name ?? null,
+              }
+            : null
+        );
       }
 
       if (itemsError) {
@@ -114,6 +123,9 @@ export default function RankingViewPage() {
               Ranking Viewer
             </p>
             <h1 className="text-2xl font-bold text-gray-900">{ranking.title}</h1>
+            <p className="text-sm text-gray-600">
+              作者: {ranking.authorName || "未設定"}
+            </p>
             {ranking.description && (
               <p className="mt-1 text-gray-700">{ranking.description}</p>
             )}

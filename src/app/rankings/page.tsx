@@ -11,6 +11,7 @@ type Ranking = {
   description: string | null;
   is_public: boolean;
   user_id: string;
+  authorName?: string | null;
 };
 
 export default function RankingsPage() {
@@ -25,7 +26,7 @@ export default function RankingsPage() {
     const fetchRankings = async () => {
       let query = supabase
         .from("rankings")
-        .select("id, title, description, is_public, user_id")
+        .select("id, title, description, is_public, user_id, profiles(display_name)")
         .order("created_at", { ascending: false });
 
       if (session?.user?.id) {
@@ -37,9 +38,15 @@ export default function RankingsPage() {
       const { data, error } = await query;
       if (error) {
         console.error("Failed to fetch rankings", error);
-      } else {
-        setRankings(data ?? []);
+        setLoading(false);
+        return;
       }
+
+      const withAuthor = (data ?? []).map((r: any) => ({
+        ...r,
+        authorName: r.profiles?.display_name ?? null,
+      }));
+      setRankings(withAuthor);
       setLoading(false);
     };
 
@@ -77,6 +84,9 @@ export default function RankingsPage() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex flex-col gap-1">
                   <h2 className="text-lg font-semibold">{ranking.title}</h2>
+                  <p className="text-xs text-gray-500">
+                    作者: {ranking.authorName || "未設定"}
+                  </p>
                   {ranking.description && (
                     <p className="text-sm text-gray-600">
                       {ranking.description}
