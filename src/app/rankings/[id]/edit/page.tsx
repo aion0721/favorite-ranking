@@ -115,7 +115,9 @@ export default function RankingEditPage() {
             href={`/rankings/${ranking.id}/items/new`}
             className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            アイテム追加
+            <span aria-hidden="true" className="mr-1">
+              ＋
+            </span>
           </Link>
         )}
       </div>
@@ -135,7 +137,9 @@ export default function RankingEditPage() {
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-lg font-semibold">{item.title}</p>
                 {item.comment && (
-                  <p className="truncate text-sm text-gray-700">{item.comment}</p>
+                  <p className="truncate text-sm text-gray-700">
+                    {item.comment}
+                  </p>
                 )}
                 {item.url && (
                   <a
@@ -159,7 +163,9 @@ export default function RankingEditPage() {
                 href={`/rankings/${ranking.id}/items/${item.id}/edit`}
                 className="rounded border border-gray-300 px-3 py-1 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
               >
-                編集
+                <span aria-hidden="true" className="mr-1">
+                  ✏️
+                </span>
               </Link>
             </div>
           ))

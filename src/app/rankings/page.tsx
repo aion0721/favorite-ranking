@@ -26,7 +26,9 @@ export default function RankingsPage() {
     const fetchRankings = async () => {
       let query = supabase
         .from("rankings")
-        .select("id, title, description, is_public, user_id, profiles(display_name)")
+        .select(
+          "id, title, description, is_public, user_id, profiles(display_name)"
+        )
         .order("created_at", { ascending: false });
 
       if (session?.user?.id) {
@@ -73,7 +75,9 @@ export default function RankingsPage() {
             href="/rankings/new"
             className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            新規作成
+            <span aria-hidden="true" className="mr-1">
+              ＋
+            </span>
           </Link>
         )}
       </div>
@@ -111,14 +115,18 @@ export default function RankingsPage() {
                         href={`/rankings/${ranking.id}/edit`}
                         className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
                       >
-                        編集
+                        <span aria-hidden="true" className="mr-1">
+                          ✏️
+                        </span>
                       </Link>
                     )}
                     <Link
                       href={`/rankings/${ranking.id}/view`}
                       className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
                     >
-                      表示
+                      <span aria-hidden="true" className="mr-1">
+                        👁️
+                      </span>
                     </Link>
                   </div>
                 )}

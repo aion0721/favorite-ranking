@@ -229,17 +229,11 @@ export default function RankingViewPage() {
             )}
           </div>
           <div className="flex gap-2">
-            <Link
-              href={`/rankings/${ranking.id}/edit`}
-              className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-            >
-              内容を編集
-            </Link>
             <button
               onClick={handleCopyLink}
               className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
             >
-              {copied ? "コピーしました" : "リンクをコピー"}
+              {copied ? "コピーしました" : "📋"}
             </button>
             <Link
               href="/rankings"

@@ -230,7 +230,7 @@ export default function NewRankingItemPage() {
             disabled={submitting}
             className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
           >
-            {submitting ? "追加中..." : "追加する"}
+            {submitting ? "追加中..." : "➕ 追加する"}
           </button>
           <button
             type="button"
