@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
 type RankingDetail = {
@@ -30,6 +31,13 @@ export default function RankingViewPage() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const clientIdRef = useRef<string>("");
+  const itemsLengthRef = useRef<number>(0);
+
+  if (!clientIdRef.current) {
+    clientIdRef.current = crypto.randomUUID();
+  }
 
   useEffect(() => {
     const id = params?.id;
@@ -82,23 +90,94 @@ export default function RankingViewPage() {
     fetchData();
   }, [params?.id, supabase]);
 
+  useEffect(() => {
+    itemsLengthRef.current = items.length;
+  }, [items.length]);
+
+  useEffect(() => {
+    const id = params?.id;
+    if (!id) return;
+
+    const channel = supabase.channel(`ranking-view:${id}`);
+    channelRef.current = channel;
+
+    channel
+      .on("broadcast", { event: "navigate" }, ({ payload }) => {
+        if (!payload) return;
+        const {
+          currentIndex: incomingIndex = 0,
+          showIntro: incomingShowIntro = false,
+          sender,
+        } = payload as {
+          currentIndex?: number;
+          showIntro?: boolean;
+          sender?: string;
+        };
+
+        if (sender && sender === clientIdRef.current) return;
+
+        const maxIndex = Math.max(0, itemsLengthRef.current - 1);
+        const clampedIndex = Math.min(
+          Math.max(incomingIndex, 0),
+          maxIndex
+        );
+        setShowIntro(incomingShowIntro);
+        setCurrentIndex(clampedIndex);
+      })
+      .subscribe();
+
+    return () => {
+      channelRef.current = null;
+      supabase.removeChannel(channel);
+    };
+  }, [params?.id, supabase]);
+
+  const broadcastNavigation = (nextIndex: number, nextShowIntro: boolean) => {
+    const channel = channelRef.current;
+    if (!channel) return;
+
+    channel
+      .send({
+        type: "broadcast",
+        event: "navigate",
+        payload: {
+          currentIndex: nextIndex,
+          showIntro: nextShowIntro,
+          sender: clientIdRef.current,
+        },
+      })
+      .catch((error) => {
+        console.error("Failed to send navigation update", error);
+      });
+  };
+
+  const applyNavigation = (nextIndex: number, nextShowIntro: boolean) => {
+    const maxIndex = Math.max(0, itemsLengthRef.current - 1);
+    const clampedIndex = Math.min(Math.max(nextIndex, 0), maxIndex);
+    setShowIntro(nextShowIntro);
+    setCurrentIndex(clampedIndex);
+    broadcastNavigation(clampedIndex, nextShowIntro);
+  };
+
   const handleNext = () => {
+    if (items.length === 0) return;
+
     if (showIntro) {
-      setShowIntro(false);
+      applyNavigation(0, false);
       return;
     }
     if (currentIndex < items.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+      applyNavigation(currentIndex + 1, false);
     }
   };
 
   const handlePrev = () => {
     if (showIntro) return;
     if (currentIndex === 0) {
-      setShowIntro(true);
+      applyNavigation(currentIndex, true);
       return;
     }
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
+    applyNavigation(Math.max(0, currentIndex - 1), false);
   };
 
   if (loading) {
