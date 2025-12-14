@@ -42,10 +42,16 @@ export default function RankingsPage() {
         return;
       }
 
-      const withAuthor = (data ?? []).map((r: any) => ({
-        ...r,
-        authorName: r.profiles?.display_name ?? null,
-      }));
+      const withAuthor = (data ?? []).map((r: any) => {
+        const profiles = r.profiles;
+        const displayName = Array.isArray(profiles)
+          ? profiles[0]?.display_name ?? null
+          : profiles?.display_name ?? null;
+        return {
+          ...r,
+          authorName: displayName,
+        };
+      });
       setRankings(withAuthor);
       setLoading(false);
     };

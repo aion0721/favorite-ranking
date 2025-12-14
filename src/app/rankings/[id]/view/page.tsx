@@ -57,7 +57,9 @@ export default function RankingViewPage() {
           rankingData
             ? {
                 ...rankingData,
-                authorName: rankingData.profiles?.display_name ?? null,
+                authorName: Array.isArray(rankingData.profiles)
+                  ? rankingData.profiles[0]?.display_name ?? null
+                  : rankingData.profiles?.display_name ?? null,
               }
             : null
         );
