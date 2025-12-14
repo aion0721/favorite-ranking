@@ -87,12 +87,14 @@ export default function RankingsPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap justify-end gap-2 text-sm">
-                  <Link
-                    href={`/rankings/${ranking.id}`}
-                    className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
-                  >
-                    編集
-                  </Link>
+                  {session?.user?.id === ranking.user_id && (
+                    <Link
+                      href={`/rankings/${ranking.id}`}
+                      className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+                    >
+                      編集
+                    </Link>
+                  )}
                   <Link
                     href={`/rankings/${ranking.id}/view`}
                     className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"

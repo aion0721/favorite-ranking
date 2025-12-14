@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
 type RankingDetail = {
@@ -21,13 +21,13 @@ type RankingItem = {
 
 export default function RankingViewPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   const [ranking, setRanking] = useState<RankingDetail | null>(null);
   const [items, setItems] = useState<RankingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     const id = params?.id;
@@ -45,7 +45,7 @@ export default function RankingViewPage() {
             .from("ranking_items")
             .select("id, rank, title, comment, image_url")
             .eq("ranking_id", id)
-            .order("rank", { ascending: false }), // 下位ランクから順に表示するため降順
+            .order("rank", { ascending: false }), // 下から順に表示
         ]);
 
       if (rankingError) {
@@ -59,6 +59,7 @@ export default function RankingViewPage() {
       } else {
         setItems(itemsData ?? []);
         setCurrentIndex(0);
+        setShowIntro(true);
       }
 
       setLoading(false);
@@ -68,15 +69,22 @@ export default function RankingViewPage() {
   }, [params?.id, supabase]);
 
   const handleNext = () => {
+    if (showIntro) {
+      setShowIntro(false);
+      return;
+    }
     if (currentIndex < items.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (showIntro) return;
+    if (currentIndex === 0) {
+      setShowIntro(true);
+      return;
     }
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
   if (loading) {
@@ -126,11 +134,46 @@ export default function RankingViewPage() {
           </div>
         </div>
 
-        {currentItem ? (
+        {items.length === 0 ? (
+          <p className="text-gray-600">アイテムがありません。</p>
+        ) : showIntro ? (
           <section className="relative flex min-h-[60vh] flex-col justify-center rounded-2xl border border-gray-200 bg-white px-6 py-8 shadow-lg">
             <div className="absolute right-4 top-4 flex items-center gap-2 text-sm text-gray-600">
+              <span>全 {items.length} 件（下位から表示）</span>
+              <button
+                onClick={handleNext}
+                className="rounded bg-blue-600 px-3 py-1 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                最初のランクへ →
+              </button>
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center text-center gap-4">
+              <h2 className="text-3xl font-bold text-gray-900">
+                {ranking.title}
+              </h2>
+              {ranking.description && (
+                <p className="max-w-2xl text-lg text-gray-700">
+                  {ranking.description}
+                </p>
+              )}
+              <p className="text-sm text-gray-500">
+                ボタンを押してランキングを下位から順に見ていきましょう。
+              </p>
+            </div>
+          </section>
+        ) : currentItem ? (
+          <section className="relative flex min-h-[60vh] flex-col justify-center rounded-2xl border border-gray-200 bg-white px-6 py-8 shadow-lg">
+            <div className="absolute left-4 top-4 flex items-center gap-2 text-sm text-gray-600">
+              <button
+                onClick={handlePrev}
+                className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+              >
+                ← {currentIndex === 0 ? "概要へ" : "前のランク"}
+              </button>
+            </div>
+            <div className="absolute right-4 top-4 flex items-center gap-2 text-sm text-gray-600">
               <span>
-                {items.length - currentIndex} / {items.length} 位
+                Rank {currentItem.rank} / {items.length}
               </span>
               {currentIndex < items.length - 1 && (
                 <button
@@ -156,25 +199,12 @@ export default function RankingViewPage() {
                   className="max-h-[320px] w-full max-w-2xl rounded-lg border border-gray-200 object-contain"
                 />
               )}
-              {currentItem.comment && (
-                <p className="max-w-2xl text-lg text-gray-700">
-                  {currentItem.comment}
-                </p>
-              )}
+              <p className="max-w-2xl text-lg text-gray-700">
+                {currentItem.comment || "内容がありません。"}
+              </p>
             </div>
-
-            {currentIndex > 0 && (
-              <button
-                onClick={handlePrev}
-                className="absolute bottom-4 left-4 rounded border border-gray-300 px-3 py-1 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-              >
-                ← 前のランク
-              </button>
-            )}
           </section>
-        ) : (
-          <p className="text-gray-600">アイテムがありません。</p>
-        )}
+        ) : null}
       </div>
     </main>
   );
