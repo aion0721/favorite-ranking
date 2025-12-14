@@ -30,6 +30,7 @@ export default function RankingEditPage() {
   const [ranking, setRanking] = useState<RankingDetail | null>(null);
   const [items, setItems] = useState<RankingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [movingId, setMovingId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = params?.id;
@@ -81,6 +82,77 @@ export default function RankingEditPage() {
 
     fetchData();
   }, [params?.id, supabase]);
+
+  const swapRanks = async (sourceId: string, targetId: string) => {
+    const source = items.find((i) => i.id === sourceId);
+    const target = items.find((i) => i.id === targetId);
+    if (!source || !target) return;
+
+    setMovingId(sourceId);
+
+    // ① source を一時退避
+    const { error: tempError } = await supabase
+      .from("ranking_items")
+      .update({ rank: -1 })
+      .eq("id", sourceId)
+      .eq("ranking_id", params.id);
+
+    if (tempError) {
+      console.error("Failed to temp update", tempError);
+      setMovingId(null);
+      return;
+    }
+
+    // ② target を source.rank に
+    const { error: targetError } = await supabase
+      .from("ranking_items")
+      .update({ rank: source.rank })
+      .eq("id", targetId)
+      .eq("ranking_id", params.id);
+
+    if (targetError) {
+      console.error("Failed to update target", targetError);
+      setMovingId(null);
+      return;
+    }
+
+    // ③ source を target.rank に
+    const { error: sourceError } = await supabase
+      .from("ranking_items")
+      .update({ rank: target.rank })
+      .eq("id", sourceId)
+      .eq("ranking_id", params.id);
+
+    if (sourceError) {
+      console.error("Failed to update source", sourceError);
+      setMovingId(null);
+      return;
+    }
+
+    setItems((prev) =>
+      [...prev]
+        .map((it) => {
+          if (it.id === sourceId) return { ...it, rank: target.rank };
+          if (it.id === targetId) return { ...it, rank: source.rank };
+          return it;
+        })
+        .sort((a, b) => a.rank - b.rank)
+    );
+
+    setMovingId(null);
+  };
+
+  const handleMoveUp = (itemId: string) => {
+    const index = items.findIndex((i) => i.id === itemId);
+    if (index <= 0) return;
+    swapRanks(itemId, items[index - 1].id);
+  };
+
+  const handleMoveDown = (itemId: string) => {
+    const index = items.findIndex((i) => i.id === itemId);
+    if (index === -1 || index >= items.length - 1) return;
+    swapRanks(itemId, items[index + 1].id);
+  };
 
   if (loading) {
     return (
@@ -159,6 +231,25 @@ export default function RankingEditPage() {
                   className="h-16 w-16 rounded-md border border-gray-200 object-cover"
                 />
               )}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleMoveUp(item.id)}
+                  disabled={movingId === item.id || items[0]?.id === item.id}
+                  className="rounded border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ▲
+                </button>
+                <button
+                  onClick={() => handleMoveDown(item.id)}
+                  disabled={
+                    movingId === item.id ||
+                    items[items.length - 1]?.id === item.id
+                  }
+                  className="rounded border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ▼
+                </button>
+              </div>
               <Link
                 href={`/rankings/${ranking.id}/items/${item.id}/edit`}
                 className="rounded border border-gray-300 px-3 py-1 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
