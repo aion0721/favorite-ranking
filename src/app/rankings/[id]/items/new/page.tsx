@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
 
+const sanitizeFileName = (name: string) =>
+  name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
 export default function NewRankingItemPage() {
   const { session, loading: sessionLoading } = useSupabaseSession();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
@@ -16,6 +19,7 @@ export default function NewRankingItemPage() {
   const [rank, setRank] = useState<number | "">("");
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -54,11 +58,38 @@ export default function NewRankingItemPage() {
       return;
     }
 
+    let uploadedImageUrl: string | null = null;
+
+    if (imageFile) {
+      const safeName = sanitizeFileName(imageFile.name);
+      const filePath = `${rankingId}/${Date.now()}-${safeName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("ranking-item-images")
+        .upload(filePath, imageFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: imageFile.type || undefined,
+        });
+
+      if (uploadError) {
+        console.error("Failed to upload image", uploadError);
+        setErrorMessage("画像のアップロードに失敗しました。");
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("ranking-item-images")
+        .getPublicUrl(uploadData.path);
+      uploadedImageUrl = publicUrlData.publicUrl;
+    }
+
     const { error } = await supabase.from("ranking_items").insert({
       ranking_id: rankingId,
       rank: Number(rank),
       title,
       comment: comment || null,
+      image_url: uploadedImageUrl,
     });
 
     if (error) {
@@ -140,6 +171,18 @@ export default function NewRankingItemPage() {
             className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             rows={3}
             placeholder="補足や理由など"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-800">
+            画像（任意・ranking-item-images バケットにアップロード）
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+            className="w-full text-sm text-gray-700"
           />
         </div>
 

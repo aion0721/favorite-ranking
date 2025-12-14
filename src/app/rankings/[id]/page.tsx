@@ -17,6 +17,7 @@ type RankingItem = {
   rank: number;
   title: string;
   comment: string | null;
+  image_url?: string | null;
 };
 
 export default function RankingDetailPage() {
@@ -41,7 +42,7 @@ export default function RankingDetailPage() {
             .maybeSingle(),
           supabase
             .from("ranking_items")
-            .select("id, rank, title, comment")
+            .select("id, rank, title, comment, image_url")
             .eq("ranking_id", id)
             .order("rank", { ascending: true }),
         ]);
@@ -113,6 +114,13 @@ export default function RankingDetailPage() {
               </div>
               <div>
                 <p className="text-lg font-semibold">{item.title}</p>
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    className="mt-2 max-h-52 w-full max-w-md rounded border border-gray-200 object-cover"
+                  />
+                )}
                 {item.comment && (
                   <p className="mt-1 text-sm text-gray-700">{item.comment}</p>
                 )}
