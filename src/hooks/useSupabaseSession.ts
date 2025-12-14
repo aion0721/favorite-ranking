@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
+import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
 export default function useSupabaseSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   useEffect(() => {
     let isMounted = true;
@@ -38,7 +39,7 @@ export default function useSupabaseSession() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   return { session, loading };
 }

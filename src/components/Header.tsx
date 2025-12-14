@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useCallback, useMemo } from "react";
+import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
 
 export default function Header() {
   const { session, loading } = useSupabaseSession();
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   const handleLogin = useCallback(async () => {
     const email = window.prompt("メールアドレスを入力してください");
