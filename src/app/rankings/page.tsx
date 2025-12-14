@@ -47,7 +47,7 @@ export default function RankingsPage() {
   }, [session, sessionLoading, supabase]);
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-6">
+    <main className="mx-auto max-w-5xl px-5 py-6">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Ranking 一覧</h1>
@@ -68,38 +68,38 @@ export default function RankingsPage() {
       ) : rankings.length === 0 ? (
         <p className="text-gray-600">ランキングが見つかりませんでした。</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-4">
           {rankings.map((ranking) => (
             <article
               key={ranking.id}
-              className="flex flex-col justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div>
-                <h2 className="text-lg font-semibold">{ranking.title}</h2>
-                {ranking.description && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    {ranking.description}
-                  </p>
-                )}
-                {!ranking.is_public && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    非公開（自分のみ）
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <Link
-                  href={`/rankings/${ranking.id}`}
-                  className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
-                >
-                  編集
-                </Link>
-                <Link
-                  href={`/rankings/${ranking.id}/view`}
-                  className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
-                >
-                  表示
-                </Link>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-lg font-semibold">{ranking.title}</h2>
+                  {ranking.description && (
+                    <p className="text-sm text-gray-600">
+                      {ranking.description}
+                    </p>
+                  )}
+                  {!ranking.is_public && (
+                    <p className="text-xs text-amber-600">非公開（自分のみ）</p>
+                  )}
+                </div>
+                <div className="flex flex-wrap justify-end gap-2 text-sm">
+                  <Link
+                    href={`/rankings/${ranking.id}`}
+                    className="rounded border border-gray-300 px-3 py-1 font-semibold text-gray-700 transition hover:bg-gray-100"
+                  >
+                    編集
+                  </Link>
+                  <Link
+                    href={`/rankings/${ranking.id}/view`}
+                    className="rounded bg-blue-600 px-3 py-1 font-semibold text-white transition hover:bg-blue-700"
+                  >
+                    表示
+                  </Link>
+                </div>
               </div>
             </article>
           ))}

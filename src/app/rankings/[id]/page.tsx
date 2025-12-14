@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
-import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
-import useSupabaseSession from "@/hooks/useSupabaseSession";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import useSupabaseSession from "@/hooks/useSupabaseSession";
+import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 
 type RankingDetail = {
   id: string;
@@ -107,24 +107,24 @@ export default function RankingDetailPage() {
           items.map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+              className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
             >
-              <div className="mt-1 h-8 w-8 rounded-full bg-blue-600 text-center text-sm font-bold text-white leading-8">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                 {item.rank}
               </div>
-              <div>
-                <p className="text-lg font-semibold">{item.title}</p>
-                {item.image_url && (
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    className="mt-2 max-h-52 w-full max-w-md rounded border border-gray-200 object-cover"
-                  />
-                )}
+              <div className="flex-1 overflow-hidden">
+                <p className="truncate text-lg font-semibold">{item.title}</p>
                 {item.comment && (
-                  <p className="mt-1 text-sm text-gray-700">{item.comment}</p>
+                  <p className="truncate text-sm text-gray-700">{item.comment}</p>
                 )}
               </div>
+              {item.image_url && (
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="h-16 w-16 rounded-md border border-gray-200 object-cover"
+                />
+              )}
             </div>
           ))
         )}
