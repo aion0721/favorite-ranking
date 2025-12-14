@@ -31,6 +31,7 @@ export default function RankingViewPage() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
+  const [copied, setCopied] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const clientIdRef = useRef<string>("");
   const itemsLengthRef = useRef<number>(0);
@@ -44,19 +45,21 @@ export default function RankingViewPage() {
     if (!id) return;
 
     const fetchData = async () => {
-      const [{ data: rankingData, error: rankingError }, { data: itemsData, error: itemsError }] =
-        await Promise.all([
-          supabase
-            .from("rankings")
-            .select("id, title, description, user_id, profiles(display_name)")
-            .eq("id", id)
-            .maybeSingle(),
-          supabase
-            .from("ranking_items")
-            .select("id, rank, title, comment, image_url")
-            .eq("ranking_id", id)
-            .order("rank", { ascending: false }), // 下から順に表示
-        ]);
+      const [
+        { data: rankingData, error: rankingError },
+        { data: itemsData, error: itemsError },
+      ] = await Promise.all([
+        supabase
+          .from("rankings")
+          .select("id, title, description, user_id, profiles(display_name)")
+          .eq("id", id)
+          .maybeSingle(),
+        supabase
+          .from("ranking_items")
+          .select("id, rank, title, comment, image_url")
+          .eq("ranking_id", id)
+          .order("rank", { ascending: false }), // 下から順に表示
+      ]);
 
       if (rankingError) {
         console.error("Failed to fetch ranking", rankingError);
@@ -117,10 +120,7 @@ export default function RankingViewPage() {
         if (sender && sender === clientIdRef.current) return;
 
         const maxIndex = Math.max(0, itemsLengthRef.current - 1);
-        const clampedIndex = Math.min(
-          Math.max(incomingIndex, 0),
-          maxIndex
-        );
+        const clampedIndex = Math.min(Math.max(incomingIndex, 0), maxIndex);
         setShowIntro(incomingShowIntro);
         setCurrentIndex(clampedIndex);
       })
@@ -180,6 +180,17 @@ export default function RankingViewPage() {
     applyNavigation(Math.max(0, currentIndex - 1), false);
   };
 
+  const handleCopyLink = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy link", error);
+    }
+  };
+
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center px-5 py-10">
@@ -206,7 +217,9 @@ export default function RankingViewPage() {
             <p className="text-xs uppercase tracking-wide text-gray-500">
               Ranking Viewer
             </p>
-            <h1 className="text-2xl font-bold text-gray-900">{ranking.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {ranking.title}
+            </h1>
             <p className="text-sm text-gray-600">
               作者: {ranking.authorName || "未設定"}
             </p>
@@ -215,12 +228,12 @@ export default function RankingViewPage() {
             )}
           </div>
           <div className="flex gap-2">
-            <Link
-              href={`/rankings/${ranking.id}`}
+            <button
+              onClick={handleCopyLink}
               className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
             >
-              詳細へ戻る
-            </Link>
+              {copied ? "コピーしました" : "リンクをコピー"}
+            </button>
             <Link
               href="/rankings"
               className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
