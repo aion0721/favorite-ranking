@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
 import useSupabaseSession from "@/hooks/useSupabaseSession";
@@ -32,7 +33,7 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3">
-      <div className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-3">
         <div className="relative h-9 w-9 overflow-hidden rounded">
           <Image
             src="/logo.png"
@@ -51,7 +52,7 @@ export default function Header() {
             お気に入りを共有しよう
           </p>
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-3 text-sm">
         {loading ? (
