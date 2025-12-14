@@ -29,27 +29,29 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      style={{
-        padding: "12px 20px",
-        borderBottom: "1px solid #e5e7eb",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <div style={{ fontWeight: 700 }}>Favorite Ranking</div>
+    <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3">
+      <div className="text-lg font-bold">Favorite Ranking</div>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      <div className="flex items-center gap-3 text-sm">
         {loading ? (
-          <span>読み込み中...</span>
+          <span className="text-gray-600">読み込み中...</span>
         ) : session ? (
           <>
-            <span>{session.user.email}</span>
-            <button onClick={handleLogout}>ログアウト</button>
+            <span className="text-gray-700">{session.user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="rounded border border-gray-300 px-3 py-1 text-gray-700 transition hover:bg-gray-100"
+            >
+              ログアウト
+            </button>
           </>
         ) : (
-          <button onClick={handleLogin}>ログイン</button>
+          <button
+            onClick={handleLogin}
+            className="rounded bg-blue-600 px-4 py-1 font-semibold text-white transition hover:bg-blue-700"
+          >
+            ログイン
+          </button>
         )}
       </div>
     </header>

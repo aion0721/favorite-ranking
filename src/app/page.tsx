@@ -34,73 +34,41 @@ export default function Home() {
   const { session, loading } = useSupabaseSession();
 
   return (
-    <main style={{ padding: "20px", maxWidth: 960, margin: "0 auto" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
+    <main className="mx-auto max-w-5xl px-5 py-6">
+      <header className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 style={{ margin: 0 }}>Ranking 一覧</h1>
-          <p style={{ margin: "4px 0 0", color: "#555" }}>
-            みんなのランキングを眺めてみよう
-          </p>
+          <h1 className="text-2xl font-bold">Ranking 一覧</h1>
+          <p className="mt-1 text-gray-600">みんなのランキングを眺めてみよう</p>
         </div>
-
         {loading ? (
-          <span>チェック中...</span>
+          <span className="text-sm text-gray-600">チェック中...</span>
         ) : session ? (
-          <button style={{ padding: "8px 12px" }}>作成</button>
+          <button className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+            作成
+          </button>
         ) : null}
-      </div>
+      </header>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 16,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {mockRankings.map((ranking) => (
           <article
             key={ranking.id}
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              padding: 16,
-              background: "#fff",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-            }}
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
           >
-            <header style={{ marginBottom: 8 }}>
-              <h2 style={{ margin: 0 }}>{ranking.title}</h2>
-              <p style={{ margin: "4px 0", color: "#666", fontSize: 14 }}>
-                {ranking.description}
-              </p>
-              <p style={{ margin: 0, fontSize: 12, color: "#888" }}>
+            <div className="mb-3 space-y-1">
+              <h2 className="text-lg font-semibold">{ranking.title}</h2>
+              <p className="text-sm text-gray-600">{ranking.description}</p>
+              <p className="text-xs text-gray-500">
                 作成者: {ranking.createdBy} / {ranking.createdAt}
               </p>
-            </header>
-
-            <ol style={{ margin: 0, paddingLeft: 20 }}>
+            </div>
+            <ol className="list-decimal space-y-2 pl-5">
               {ranking.entries.map((entry, index) => (
-                <li key={entry.id} style={{ marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{entry.name}</span>
-                  <span style={{ color: "#888", marginLeft: 8 }}>
-                    {entry.votes} votes
-                  </span>
+                <li key={entry.id} className="flex items-center gap-2">
+                  <span className="font-semibold">{entry.name}</span>
+                  <span className="text-sm text-gray-500">{entry.votes} votes</span>
                   {index === 0 && (
-                    <span
-                      style={{
-                        marginLeft: 8,
-                        fontSize: 12,
-                        color: "#2563eb",
-                        fontWeight: 600,
-                      }}
-                    >
+                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
                       Top
                     </span>
                   )}
