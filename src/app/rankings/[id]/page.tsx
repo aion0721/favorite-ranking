@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabaseClient";
+import useSupabaseSession from "@/hooks/useSupabaseSession";
+import Link from "next/link";
 
 type RankingDetail = {
   id: string;
@@ -20,6 +22,7 @@ type RankingItem = {
 export default function RankingDetailPage() {
   const params = useParams<{ id: string }>();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const { session, loading: sessionLoading } = useSupabaseSession();
   const [ranking, setRanking] = useState<RankingDetail | null>(null);
   const [items, setItems] = useState<RankingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,10 +82,20 @@ export default function RankingDetailPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">{ranking.title}</h1>
-        {ranking.description && (
-          <p className="mt-2 text-gray-700">{ranking.description}</p>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{ranking.title}</h1>
+          {ranking.description && (
+            <p className="mt-2 text-gray-700">{ranking.description}</p>
+          )}
+        </div>
+        {!sessionLoading && session && (
+          <Link
+            href={`/rankings/${ranking.id}/items/new`}
+            className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+          >
+            アイテム追加
+          </Link>
         )}
       </div>
 
