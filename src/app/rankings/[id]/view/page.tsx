@@ -249,7 +249,7 @@ export default function RankingViewPage() {
         ) : showIntro ? (
           <section className="relative flex min-h-[60vh] flex-col justify-center rounded-2xl border border-gray-200 bg-white px-6 py-8 shadow-lg">
             <div className="absolute right-4 top-4 flex items-center gap-2 text-sm text-gray-600">
-              <span>全 {items.length} 件（下位から表示）</span>
+              <span>全 {items.length} 件</span>
               <button
                 onClick={handleNext}
                 className="rounded bg-blue-600 px-3 py-1 text-sm font-semibold text-white transition hover:bg-blue-700"
@@ -267,7 +267,7 @@ export default function RankingViewPage() {
                 </p>
               )}
               <p className="text-sm text-gray-500">
-                ボタンを押してランキングを下位から見ていきましょう。
+                全員がページを開いたら次へを押しましょう
               </p>
             </div>
           </section>

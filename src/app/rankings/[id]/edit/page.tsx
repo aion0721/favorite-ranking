@@ -27,9 +27,16 @@ export default function RankingEditPage() {
   const params = useParams<{ id: string }>();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const { session, loading: sessionLoading } = useSupabaseSession();
+
   const [ranking, setRanking] = useState<RankingDetail | null>(null);
   const [items, setItems] = useState<RankingItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [showInfoForm, setShowInfoForm] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
   const [movingId, setMovingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,6 +76,10 @@ export default function RankingEditPage() {
               }
             : null
         );
+        if (rankingData) {
+          setEditTitle(rankingData.title ?? "");
+          setEditDescription(rankingData.description ?? "");
+        }
       }
 
       if (itemsError) {
@@ -83,6 +94,42 @@ export default function RankingEditPage() {
     fetchData();
   }, [params?.id, supabase]);
 
+  const handleUpdateRanking = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!ranking) return;
+    if (!editTitle.trim()) return;
+
+    setUpdating(true);
+    const { error } = await supabase
+      .from("rankings")
+      .update({
+        title: editTitle,
+        description: editDescription || null,
+      })
+      .eq("id", ranking.id);
+
+    if (error) {
+      console.error("Failed to update ranking", error);
+      setUpdating(false);
+      return;
+    }
+
+    setRanking((prev) =>
+      prev
+        ? { ...prev, title: editTitle, description: editDescription || null }
+        : prev
+    );
+    setUpdating(false);
+    setShowInfoForm(false);
+  };
+
+  const handleCancelInfo = () => {
+    if (!ranking) return;
+    setEditTitle(ranking.title ?? "");
+    setEditDescription(ranking.description ?? "");
+    setShowInfoForm(false);
+  };
+
   const swapRanks = async (sourceId: string, targetId: string) => {
     const source = items.find((i) => i.id === sourceId);
     const target = items.find((i) => i.id === targetId);
@@ -90,7 +137,6 @@ export default function RankingEditPage() {
 
     setMovingId(sourceId);
 
-    // ① source を一時退避
     const { error: tempError } = await supabase
       .from("ranking_items")
       .update({ rank: -1 })
@@ -103,7 +149,6 @@ export default function RankingEditPage() {
       return;
     }
 
-    // ② target を source.rank に
     const { error: targetError } = await supabase
       .from("ranking_items")
       .update({ rank: source.rank })
@@ -116,7 +161,6 @@ export default function RankingEditPage() {
       return;
     }
 
-    // ③ source を target.rank に
     const { error: sourceError } = await supabase
       .from("ranking_items")
       .update({ rank: target.rank })
@@ -173,26 +217,76 @@ export default function RankingEditPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 py-6">
       <div className="mb-6 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{ranking.title}</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold">ランキングを編集</h1>
           <p className="text-sm text-gray-600">
             作成者: {ranking.authorName || "未設定"}
           </p>
-          {ranking.description && (
-            <p className="mt-2 text-gray-700">{ranking.description}</p>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowInfoForm((prev) => !prev)}
+            className="mt-1 inline-flex items-center justify-center rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-100"
+          >
+            情報を編集（タイトル・説明）
+          </button>
         </div>
         {!sessionLoading && session && (
           <Link
             href={`/rankings/${ranking.id}/items/new`}
             className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            <span aria-hidden="true" className="mr-1">
-              ＋
-            </span>
+            <span aria-hidden="true" className="mr-1">＋</span>
           </Link>
         )}
       </div>
+
+      {showInfoForm && (
+        <form
+          onSubmit={handleUpdateRanking}
+          className="mb-6 space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+        >
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800">
+              タイトル
+            </label>
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800">
+              説明（任意）
+            </label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              rows={3}
+              placeholder="概要やルールなど"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={updating}
+              className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+            >
+              {updating ? "更新中..." : "保存する"}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelInfo}
+              className="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+            >
+              キャンセル
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="space-y-3">
         {items.length === 0 ? (
@@ -257,6 +351,7 @@ export default function RankingEditPage() {
                 <span aria-hidden="true" className="mr-1">
                   ✏️
                 </span>
+                編集
               </Link>
             </div>
           ))
