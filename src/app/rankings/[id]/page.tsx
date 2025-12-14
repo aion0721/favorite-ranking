@@ -52,13 +52,16 @@ export default function RankingDetailPage() {
       if (rankingError) {
         console.error("Failed to fetch ranking", rankingError);
       } else {
+        const profiles = (rankingData as any)?.profiles;
+        const displayName = Array.isArray(profiles)
+          ? profiles[0]?.display_name ?? null
+          : (profiles as any)?.display_name ?? null;
+
         setRanking(
           rankingData
             ? {
                 ...rankingData,
-                authorName: Array.isArray(rankingData.profiles)
-                  ? rankingData.profiles[0]?.display_name ?? null
-                  : rankingData.profiles?.display_name ?? null,
+                authorName: displayName,
               }
             : null
         );
