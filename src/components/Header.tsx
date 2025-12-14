@@ -60,19 +60,6 @@ export default function Header() {
     };
   }, [session?.user?.id, supabase]);
 
-  const handleLogin = useCallback(async () => {
-    const email = window.prompt("メールアドレスを入力してください");
-    if (!email) return;
-
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) {
-      alert("ログインリンクの送信に失敗しました");
-      console.error(error);
-    } else {
-      alert("メールに送信されたリンクからログインしてください");
-    }
-  }, [supabase]);
-
   const handleLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -159,14 +146,23 @@ export default function Header() {
               {profileLoading ? (
                 <span className="text-gray-700">プロフィール取得中...</span>
               ) : (
-                <button
-                  type="button"
-                  onClick={handleStartEdit}
-                  className="rounded px-2 py-1 text-gray-700 transition hover:bg-gray-100"
-                  title="表示名を変更する"
-                >
-                  {displayLabel}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleStartEdit}
+                    className="rounded px-2 py-1 text-gray-700 transition hover:bg-gray-100"
+                    title="表示名を変更する"
+                  >
+                    👤 {displayLabel}
+                  </button>
+                  <Link
+                    href="/account/password"
+                    className="rounded border border-gray-300 px-2 py-1 text-gray-700 transition hover:bg-gray-100"
+                    title="パスワードを設定/変更する"
+                  >
+                    🔒
+                  </Link>
+                </div>
               )}
               <button
                 onClick={handleLogout}
@@ -176,12 +172,12 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <button
-              onClick={handleLogin}
+            <Link
+              href="/login"
               className="rounded bg-blue-600 px-4 py-1 font-semibold text-white transition hover:bg-blue-700"
             >
               ログイン
-            </button>
+            </Link>
           )}
         </div>
       </header>
@@ -194,7 +190,9 @@ export default function Header() {
           >
             <div className="flex-1 space-y-1">
               <p className="text-sm font-semibold text-blue-900">
-                {profile ? "表示名を変更できます。" : "はじめまして！表示名を登録してください。"}
+                {profile
+                  ? "表示名を変更できます。"
+                  : "はじめまして！表示名を登録してください。"}
               </p>
               <p className="text-xs text-blue-800">
                 ランキング作成者として表示する名前です。あとから変更もできます。
